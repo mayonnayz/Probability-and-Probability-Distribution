@@ -1,0 +1,198 @@
+---
+title: "Formative Assessment 1"
+author: "Elisha Sophia Borromeo and Zyann Lynn Mayo"
+date: "2025-01-31"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+###### GitHub Link: https://github.com/mayonnayz/FA1_Probability.git
+
+
+## **PEARSON'S SKEWNESS PROGRAM** 
+
+##### This will print the results of my R code chunks
+
+```{r}
+library(knitr)
+```
+##### First, I'll store the results.txt data into a variable
+```{r}
+exam_results <- read.table("results.txt", header = TRUE, na.strings = "NA")
+```
+##### Print the data to view the contents
+
+```{r}
+print(exam_results)
+View(exam_results)
+```
+
+
+### **Arch1 VALUES**
+##### I need this to ensure that the argument is numeric
+```{r}
+exam_results$arch1 <- as.numeric(exam_results$Arch1)
+```
+##### Calculating the mean of arch1
+```{r}
+mean_arch1 <- mean(exam_results$arch1, na.rm = TRUE)
+```
+##### Calculating the median of arch1
+```{r}
+median_arch1 <- median(exam_results$arch1, na.rm = TRUE)
+```
+##### Calculating the standard deviation of arch1
+```{r}
+sd_arch1 <- sd(exam_results$arch1, na.rm = TRUE)
+```
+##### Calculating skewness of arch1 based on Pearson's
+```{r}
+skewness_arch1 <- 3 * (mean_arch1 - median_arch1) / sd_arch1
+skewness_arch1
+```
+
+
+### **Prog1 VALUES**
+```{r}
+exam_results$prog1 <- as.numeric(exam_results$Prog1)
+```
+##### Calculating the mean of prog1
+```{r}
+mean_prog1 <- mean(exam_results$prog1, na.rm = TRUE)
+```
+##### Calculating the median of prog1
+```{r}
+median_prog1 <- median(exam_results$prog1, na.rm = TRUE)
+```
+##### Calculating the standard deviation of prog1
+```{r}
+sd_prog1 <- sd(exam_results$prog1, na.rm = TRUE)
+```
+##### Calculating skewness of prog1 based on Pearson's
+```{r}
+skewness_prog1 <- 3 * (mean_prog1 - median_prog1) / sd_prog1
+skewness_prog1
+```
+
+
+### **Arch2 VALUES**
+```{r}
+exam_results$arch2 <- as.numeric(exam_results$Arch2)
+```
+##### Calculating the mean of arch2
+```{r}
+mean_arch2 <- mean(exam_results$arch2, na.rm = TRUE)
+```
+##### Calculating the median of arch2
+```{r}
+median_arch2 <- median(exam_results$arch2, na.rm = TRUE)
+```
+##### Calculating the standard deviation of arch2
+```{r}
+sd_arch2 <- sd(exam_results$arch2, na.rm = TRUE)
+```
+##### Calculating skewness of arch2 based on Pearson's
+```{r}
+skewness_arch2 <- 3 * (mean_arch2 - median_arch2) / sd_arch2
+skewness_arch2
+```
+
+
+### **Prog2 VALUES**
+```{r}
+exam_results$prog2 <- as.numeric(exam_results$Prog2)
+```
+##### Calculating the mean of prog2
+```{r}
+mean_prog2 <- mean(exam_results$prog2, na.rm = TRUE)
+```
+##### Calculating the median of prog2
+```{r}
+median_prog2 <- median(exam_results$prog2, na.rm = TRUE)
+```
+##### Calculating the standard deviation of prog2
+```{r}
+sd_prog2 <- sd(exam_results$prog2, na.rm = TRUE)
+```
+##### Calculating skewness of prog2 based on Pearson's
+```{r}
+skewness_prog2 <- 3 * (mean_prog2 - median_prog2) / sd_prog2
+skewness_prog2
+```
+
+##### To avoid redundancy, I will remove repeating columns
+```{r}
+exam_results$Arch1 <- NULL
+exam_results$Prog1 <- NULL
+exam_results$Arch2 <- NULL
+exam_results$Prog2 <- NULL
+```
+ 
+##### As seen from the module, I will do this for comparison
+```{r}
+summary(exam_results)
+```
+
+<div style="text-align: justify;">
+**Answering follow up questions:**
+
+1.	What can you say about these data?
+Upon calculating the skewness for each subject and obtaining their coefficients using the skewness function, it has given me information regarding the distribution of the data. It is said that when skewness is close to 0, then the data is close to symmetrical. If it’s positive, then it is right-skewed or the distribution usually has a higher mean than its median while negative skewness is the opposite where the median is usually higher than the mean. This can be observed from the data above. We can see that arch2 has a positive coefficient and its mean is higher than its median while the other three subjects are negative, proposing that their median is higher than their mean. Nonetheless, they are all close to zero, they range from -0.5063276 to 0.4423272, which signifies that the distribution is somewhat symmetrical.
+
+2. Is it a reasonable approximation?
+Comparing the results from the built-in skewness function and the results that were derived from Pearson’s skewness approximation, With Pearson’s ranging from -0.643229 to 0.5421286 and the skewness function ranging from -0.5063276 to 0.4423272, we can say that it is a reasonable approximation. Note that Arch2 is still the only subject that has a positive skewness and the other three have negatives just like in the skewness function. Still, they are varying values, which reminds us that Pearson’s formula is merely an approximation—it is not accurate. Regardless, it gives us an insight regarding the distribution’s skewness as it provides close values.
+</div> 
+
+## **STEM-AND-LEAF AND BOXPLOT GRAPH**
+
+
+##### Assign the score values of both genders into variables "Female" and "Male"
+```{r}
+Female <- c(57, 59, 78, 79, 60, 65, 68, 71, 75, 
+            48, 51, 55, 56, 41, 43, 44, 75, 78, 
+            80, 81, 83, 83, 85)
+
+Male <- c(48, 49, 49, 30, 30, 31, 32, 35, 37, 
+          41, 86, 42, 51, 53, 56, 42, 44, 50, 
+          51, 65, 67, 51, 56, 58, 64, 64, 75)
+```
+
+### **Part A: Form the stem-and-leaf display for each gender, and discuss the advantages of this representation compared to the traditional histogram.**
+
+#### **Female Stem-and-Leaf**
+```{r}
+stem(Female)
+```
+
+#### **Male Stem-and-Leaf**
+```{r}
+stem(Male)
+```
+
+<div style="text-align: justify;">
+##### Both the stem-and-leaf and histogram visualize the distribution of a set of data within a range. Despite this, the advantages of the representation in the stem-and-leaf is that you can see the **exact data values** and not just grouped within a range of numbers. With this, the **repetition or frequency of specific numbers** in the data can also be seen. For example, in the traditional histogram, the bar could show a range between numbers 40 and 49, which means that it could contain all numbers from 40 to 49, but with the stem-and-leaf, the actual values are revealed.
+</div>
+
+
+### **Part B: Construct a box-plot for each gender and discuss the findings.**
+
+```{r, fig.align='center'}
+scores <- data.frame(
+  score = c(Male, Female),
+  gender = factor(c(rep("Male", length(Male)), rep("Female", length(Female))))
+)
+
+boxplot(score ~ gender, data = scores,
+        main = "Box-Plot for Male and Female Students",
+        xlab = "Gender",
+        ylab = "Scores",
+        col = c("lightblue", "lightpink"))
+```
+
+
+
+<div style="text-align: justify;">
+##### As this reveals the box plot for both female and male scores, let us interpret and compare them. Firstly, it shows that the median of the female scores is slightly below 70, while the males' are close to 50, indicating that **females, on average, scored higher than males**. As for the spread of the scores determined by the interquartile range (IQR), which is indicated by the areas with color, it shows how there is **more variation among the female scores compared to the male score**. Additionally, **an outlier in the male box plot is evident with a value of 86**, the highest score among the 50 students. This points out an **unusually extreme score in comparison to the rest of the male scores**. To summarize the findings, the box plot highlights that **females have more variability in their scores and tend to score higher on average than males, whose scores are more clustered at the lower end**.
+</div>
+
