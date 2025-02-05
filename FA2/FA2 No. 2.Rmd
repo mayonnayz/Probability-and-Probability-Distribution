@@ -1,0 +1,47 @@
+---
+title: "Heads and Tails Relative Frequency and Probability"
+output: html_document
+date: "2025-02-05"
+---
+
+## **Relative Frequency**
+Instructions: An experiment consists of tossing two fair coins. Use R to simulate this experiment 100 times and obtain the relative frequency of each possible outcome. 
+
+First, define the possible outcomes of tossing the coin. H for head, T for tails.
+```{r}
+coins <- c("H", "T")
+```
+
+Next, we have to simulate this experiement 100 times. Note that since each experiment has two tosses and we have to simulate this experiement 100 times, the total number of tosses we need is 200. To organize the data, we can use a matrix with 2 columns and 100 rows.
+```{r}
+simulated_tosses <- matrix(sample(coins, 200, replace = TRUE), ncol = 2)
+```
+
+Now, since each row represents an experiment, we can combine each pair of tosses into one outcome.
+```{r}
+outcomes <- apply(simulated_tosses, 1, paste, collapse = "")
+```
+
+To view the outcomes, we can create a table.
+```{r}
+freq_table <- table(outcomes)
+print(freq_table)
+```
+
+Finally, we can now calculate the relative frequencies using the formula provided in the module (no. of times E occurs/no. of times experiment is repeated).
+```{r}
+total_experiments <- length(outcomes)  
+rel_freq <- freq_table / total_experiments
+print("Relative Frequencies:")
+print(rel_freq)
+```
+
+## **Probability of one head and one tail**
+Continuation of instructions: Hence, estimate the probability of getting one head and one tail in any order.
+
+Remember that we can use the Addition Rule since HT and TH are mutually exclusive.
+```{r}
+prob_HT_or_TH <- sum(rel_freq[names(rel_freq) %in% c("HT", "TH")])
+print("Estimated Probability of One Head and One Tail:")
+print(prob_HT_or_TH)
+```
