@@ -1,0 +1,34 @@
+---
+title: "Rolling a Die Relative Frequency"
+date: "2025-02-05"
+output: html_document
+---
+
+Instructions: An experiment consists of rolling a die. Use R to simulate this experiment 600 times and obtain the relative frequency of each possible outcome. Hence, estimate the probability of getting each of 1, 2, 3, 4, 5, and 6.
+
+First, simulate rolling a die 600 times and store it in the variable "rolls".
+
+```{r}
+rolls <- sample(1:6, size = 600, replace = TRUE)
+```
+
+Here are the first ten simulations:
+
+```{r}
+head(rolls,10)
+```
+
+Let's summarize how often each possible outcome appeared in the 600 rolls.
+
+```{r}
+table(rolls)
+```
+
+Finally, let's calculate the relative frequency or probability of getting each possible outcome in rolling a die.
+```{r}
+dice_prob <- table(rolls) / 600
+dice_prob
+```
+
+These values estimate the probability of each outcome of rolling a fair die which should ideally be: $$\frac{1}{6} \approx 1.6667$$.
+
