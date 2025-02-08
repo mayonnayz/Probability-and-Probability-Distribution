@@ -25,10 +25,12 @@ table(rolls)
 ```
 
 Finally, let's calculate the relative frequency or probability of getting each possible outcome in rolling a die.
-```{r}
+```{r, fig.align='center'}
 dice_prob <- table(rolls) / 600
 dice_prob
+
+barplot(dice_prob)
 ```
 
-These values estimate the probability of each outcome of rolling a fair die which should ideally be: $$\frac{1}{6} \approx 1.6667$$.
+These values estimate the probability of each outcome of rolling a fair die which should ideally be: $$\frac{1}{6} \approx 0.1667$$.
 

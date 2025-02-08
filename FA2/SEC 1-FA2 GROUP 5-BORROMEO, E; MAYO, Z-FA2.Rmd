@@ -1,0 +1,88 @@
+---
+title: "Formative Assessment 2"
+author: "Elisha Sophia Borromeo and Zyann Lynn Mayo"
+date: "2025-02-08"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+## **2. Heads and Tails Relative Frequency and Probability**
+**Instructions:** An experiment consists of tossing two fair coins. Use R to simulate this experiment 100 times and obtain the relative frequency of each possible outcome. 
+
+First, define the possible outcomes of tossing the coin. H for head, T for tails.
+```{r}
+coins <- c("H", "T")
+```
+
+Next, we have to simulate this experiement 100 times. Note that since each experiment has two tosses and we have to simulate this experiement 100 times, the total number of tosses we need is 200. To organize the data, we can use a matrix with 2 columns and 100 rows.
+```{r}
+simulated_tosses <- matrix(sample(coins, 200, replace = TRUE), ncol = 2)
+```
+
+Now, since each row represents an experiment, we can combine each pair of tosses into one outcome.
+```{r}
+outcomes <- apply(simulated_tosses, 1, paste, collapse = "")
+```
+
+To view the outcomes, we can create a table.
+```{r}
+freq_table <- table(outcomes)
+print(freq_table)
+```
+
+Finally, we can now calculate the relative frequencies using the formula provided in the module (no. of times E occurs/no. of times experiment is repeated).
+```{r}
+total_experiments <- length(outcomes)  
+rel_freq <- freq_table / total_experiments
+print("Relative Frequencies:")
+print(rel_freq)
+```
+
+ ** Probability of one head and one tail** \par
+Continuation of instructions: Hence, estimate the probability of getting one head and one tail in any order.
+
+Remember that we can use the Addition Rule since HT and TH are mutually exclusive.
+```{r}
+prob_HT_or_TH <- sum(rel_freq[names(rel_freq) %in% c("HT", "TH")])
+print("Estimated Probability of One Head and One Tail:")
+print(prob_HT_or_TH)
+```
+
+## **3. Rolling a Die Relative Frequency and Probability**
+
+**Instructions:** An experiment consists of rolling a die. Use R to simulate this experiment 600 times and obtain the relative frequency of each possible outcome. Hence, estimate the probability of getting each of 1, 2, 3, 4, 5, and 6.
+
+First, simulate rolling a die 600 times and store it in the variable "rolls".
+
+```{r}
+rolls <- sample(1:6, size = 600, replace = TRUE)
+```
+
+Here are the first ten simulations:
+
+```{r}
+head(rolls,10)
+```
+
+Let's summarize how often each possible outcome appeared in the 600 rolls.
+
+```{r}
+table(rolls)
+```
+
+Finally, let's calculate the relative frequency or probability of getting each possible outcome in rolling a die.
+```{r}
+dice_prob <- table(rolls) / 600
+dice_prob
+
+barplot(dice_prob,
+        main = "Relative Frequency of Each Outcome in 600 Die Rolls",
+        xlab = "Outcomes",
+        ylab = "Relative Frequency",
+        col = c("#e3b862", "#e39e62", "#e38d62", "#e38062", "#e37862", "#e36b62"))
+```
+
+These values estimate the probability of each outcome of rolling a fair die which should ideally be: $$\frac{1}{6} \approx 0.1667$$.
+
