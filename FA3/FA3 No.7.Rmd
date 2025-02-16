@@ -1,0 +1,57 @@
+---
+title: 'FA3 #7'
+author: "Elisha Borromeo"
+date: "2025-02-14"
+output:
+  pdf_document: default
+  html_document: default
+---
+## **Three Employees, One Error; Who is Most Likely to?**
+
+First, we must define the given conditional probabilities.
+
+There are three employees working at an IT company: Jane, Amy, and Ava, doing 10%, 30%, and 60% of the programming, respectively. 8% of Jane’s work, 5% of Amy’s work, and just 1% of Ava‘s work is in error.
+```{r}
+Prob_Jane <- 0.10   
+Prob_Amy <- 0.30   
+Prob_Ava <- 0.60  
+ProbError_Jane <- 0.08  
+ProbError_Amy <- 0.05  
+ProbError_Ava <- 0.01   
+```
+
+What is the overall percentage of error?
+
+We may now calculate the probability of error. We can use the Law of Total Probability.
+```{r}
+P_TotalError <- (ProbError_Jane * Prob_Jane) + (ProbError_Amy * Prob_Amy) + (ProbError_Ava * Prob_Ava)
+cat("Therefore, the overall percentage of error is:", P_TotalError * 100, "%")
+```
+
+If a program is found with an error, who is the most likely person to have written it? 
+
+To figure out who is the most likely to have written a program with an error, we can calculate the posterior probability of each employee. We can use Bayes' Theorem that states the probability of A after B has occurred.
+```{r}
+PPError_Jane <- (ProbError_Jane * Prob_Jane) / P_TotalError
+cat("Jane's posterior probability that she wrote the program with an error:", PPError_Jane * 100, "%")
+PPError_Amy <- (ProbError_Amy * Prob_Amy) / P_TotalError
+cat("Amy's posterior probability that she wrote the program with an error:", PPError_Amy * 100, "%")
+PPError_Ava <- (ProbError_Ava * Prob_Ava) / P_TotalError
+cat("Ava's posterior probability that she wrote the program with an error:", PPError_Ava * 100, "%")
+```
+
+To summarize,
+```{r}
+summary <- data.frame(
+  Employee_Names = c("Jane", "Amy", "Ava"),
+  Probability_of_Error = c(ProbError_Jane, ProbError_Amy, ProbError_Ava),
+  Contribution = c(Prob_Jane, Prob_Amy, Prob_Ava),
+  Posterior_Probability = c(PPError_Jane, PPError_Amy, PPError_Ava)
+)
+print(summary)
+```
+
+Thus,
+
+After careful consideration of the results provided above, we can conclude that Amy is the employee that is most likely to have written an error in the program with approximately 51.72%.
+

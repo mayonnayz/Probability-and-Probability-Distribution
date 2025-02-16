@@ -1,0 +1,85 @@
+---
+title: "NO2 FA3"
+author: "Zyann Lynn Mayo"
+date: "2025-02-16"
+output: pdf_document
+header-includes:
+  - \usepackage{changepage}
+---
+
+
+## **2. Binary Communication Channel**
+
+\begin{adjustwidth}{1cm}{1cm} 
+Instructions: A binary communication channel carries data as one of two sets of signals denoted by 0 and 1. Owing to noise, a transmitted 0 is sometimes received as a 1, and a transmitted 1 is sometimes received as a 0. For a given channel, it can be assumed that a transmitted 0 is correctly received with probability 0.95, and a transmitted 1 is correctly received with probability 0.75. Also, 70% of all messages are transmitted as a 0. 
+\end{adjustwidth}
+
+Let's insert the given into variables
+
+```{r}
+# ZERO
+
+# probability of correctly received 0
+prob_c_rzero <- 0.95
+# probability of incorrectly received (1 was received)
+prob_w_rzero <- (1-0.95)
+# probability of 0 transmitted
+prob_tzero <- 0.70
+
+# ONE
+
+# probability of correctly received 1
+prob_c_rone <- 0.75
+# probability of incorrectly received (0 was received)
+prob_w_rone <- (1-0.75)
+# probability of 1 transmitted
+prob_tone <- (1-0.70)
+
+```
+
+### **(a) a 1 was received**
+
+The formula of the probablity of the event that 1 was received is the union of receiving 1 from either 0 and 1 that was transmitted.
+
+\[
+P(R_1) = (T_1 \cap R_1) \cup (T_0 \cap R_1)
+\]
+
+which is also:
+
+\[
+P(R_1) = P(T_1) P(R_1|T_1) + P(T_0) P(R_1|T_0) 
+\]
+
+Substituting the values...
+
+```{r}
+prob_rone <- (prob_tone*prob_c_rone) + (prob_tzero*prob_w_rzero)
+#          = (0.3 * 0.75) + (0.7 * 0.05)
+```
+
+We get that the probability of receiving 1 is:
+\[
+P(R_1) = `r prob_rone`
+\]
+
+### **(b) a 1 was transmitted given that a 1 was received**
+
+Using Bayes' rule for two events, the formula to be used will be:
+
+\[
+P(T_1|R_1) = \frac{P(T_1) P(R_1|T_1)}{P(R_1)}
+\]
+
+Using the initial given values and the value of that was acquired in the previous item...
+
+```{r}
+prob_tone_rone <- (prob_tone*prob_c_rone) / prob_rone
+#               = (0.3*0.75) / (0.26)
+```
+
+Thus, the probability of a 1 transmitted given that a 1 was received is:
+
+\[
+P(T_1|R_1) = `r round(prob_tone_rone,4)`
+\]
