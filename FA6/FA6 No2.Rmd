@@ -1,0 +1,64 @@
+---
+title: "FA6 No 2"
+author: "Zyann Lynn Mayo"
+date: "2025-03-05"
+output: pdf_document
+---
+
+# **II. Hypergeometric Distribution**
+
+We need to find 
+\[
+P(X > 1) = 1 - P(X = 0) - P(X = 1)
+\]
+For both cases, we will follow the Hypergeometric Probability formula:
+\[
+P(X = k) = \frac{\binom{K}{k} \binom{N-K}{n-k}}{\binom{N}{n}}
+\]
+
+## Case 1: A sample of 10 is selected from a box of 40
+
+Insert values into variables
+```{r}
+# k = selected number of defective chips
+k1 <- 0.10
+# n = sample size 
+n1 <- 10
+# N = population from given case
+N1 <- 40
+# K = defective 
+K1 <- N1*k1
+
+# Compute the probabilities P(X = 0) and P(X = 1)
+P_X0_case1 <- dhyper(x = 0, m = K1, n = N1 - K1, k = n1)
+P_X1_case1 <- dhyper(x = 1, m = K1, n = N1 - K1, k = n1)
+
+# Compute P(X > 1) = 1 - P(X = 0) - P(X = 1)
+P_greater1_case1 <- 1 - P_X0_case1 - P_X1_case1
+```
+
+We get that the probability that the sample contains more that 10% defectives when a sample of 10 is selected from a box of 40 is **`r paste0(round(P_greater1_case1 * 100, 2), "%")` **
+
+## Case 2: A sample of 10 is selected from a box of 5000
+
+Insert values into variables
+```{r}
+# k = selected number of defective chips
+k2 <- 0.10
+# n = sample size 
+n2 <- 10
+# N = population from given case
+N2 <- 5000
+# K = defective 
+K2 <- N2*k2
+
+# Compute the probabilities P(X = 0) and P(X = 1)
+P_X0_case2 <- dhyper(x = 0, m = K2, n = N2 - K2, k = n2)
+P_X1_case2 <- dhyper(x = 1, m = K2, n = N2 - K2, k = n2)
+
+# Compute P(X > 1) = 1 - P(X = 0) - P(X = 1)
+P_greater1_case2 <- 1 - P_X0_case2 - P_X1_case2
+```
+
+We get that the probability that the sample contains more that 10% defectives when a sample of 10 is selected from a box of 5000 is **`r paste0(round(P_greater1_case2 * 100, 2), "%")` **
+
