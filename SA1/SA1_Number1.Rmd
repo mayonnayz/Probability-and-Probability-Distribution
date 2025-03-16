@@ -1,0 +1,98 @@
+---
+title: "SA1 Number 1"
+author: "Elisha Borromeo"
+date: "2025-03-16"
+output: html_document
+runtime: shiny
+---
+
+## **1. Probability of Product Defectivity**
+
+---
+
+### **We'll use the Law of Total Probability**
+The probability of selecting a defective product is calculated as:
+
+\[
+P(D) = (x_1 \times y_1) + (x_2 \times y_2) + (x_3 \times y_3)
+\]
+
+where:  
+- \( x_i \) are the **production proportions** (must be equal to 1 when added).  
+- \( y_i \) are the **defect rates** (must be equal to 0.12 when added).  
+- The values must satisfy the conditions:  
+  - \( 0.10 \leq x_i \leq 0.40 \)  
+  - \( 0.01 \leq y_i \leq 0.05 \)  
+
+---
+
+```{r, echo=FALSE}
+library(shiny)
+
+ui <- fluidPage(
+  titlePanel("Defective Probability Calculator"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("x1", "Enter x1:", value = NA, min = 0.10, max = 0.40),
+      numericInput("x2", "Enter x2:", value = NA, min = 0.10, max = 0.40),
+      numericInput("x3", "Enter x3:", value = NA, min = 0.10, max = 0.40),
+      
+      numericInput("y1", "Enter y1:", value = NA, min = 0.01, max = 0.05),
+      numericInput("y2", "Enter y2:", value = NA, min = 0.01, max = 0.05),
+      numericInput("y3", "Enter y3:", value = NA, min = 0.01, max = 0.05),
+      
+      actionButton("calculate", "Compute Probability")
+    ),
+    
+    mainPanel(
+      verbatimTextOutput("result")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$calculate, {
+    x <- c(input$x1, input$x2, input$x3)
+    y <- c(input$y1, input$y2, input$y3)
+    
+    # Here we can check if the user has enetered values
+    if (any(is.na(x)) || any(is.na(y))) {
+      output$result <- renderText("Please enter all values before calculating.")
+      return()
+    }
+    
+    # This is the code that ensures that the user inputs satisfy the given conditions
+    if (any(x < 0.10 | x > 0.40)) {
+      output$result <- renderText("Error: x values must be between 0.10 and 0.40.")
+      return()
+    }
+    if (any(y < 0.01 | y > 0.05)) {
+      output$result <- renderText("Error: y values must be between 0.01 and 0.05.")
+      return()
+    }
+    if (sum(x) != 1) {
+      output$result <- renderText("Error: x1 + x2 + x3 should be equal to 1.")
+      return()
+    }
+    if (sum(y) != 0.12) {
+      output$result <- renderText("Error: y1 + y2 + y3 should be equal to 0.12.")
+      return()
+    }
+    
+    # We can compute probability using Law of Total Probability
+    p_defective <- sum(x * y)
+    
+    output$result <- renderText(paste("Probability of selecting a defective product:", round(p_defective, 4)))
+    
+    # Let's reset so that user can input again eventually
+    updateNumericInput(session, "x1", value = NA)
+    updateNumericInput(session, "x2", value = NA)
+    updateNumericInput(session, "x3", value = NA)
+    updateNumericInput(session, "y1", value = NA)
+    updateNumericInput(session, "y2", value = NA)
+    updateNumericInput(session, "y3", value = NA)
+  })
+}
+
+shinyApp(ui, server)
