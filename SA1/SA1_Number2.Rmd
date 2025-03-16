@@ -1,0 +1,191 @@
+---
+title: "SA1 Number 2"
+author: "Elisha Borromeo & Zyann Lynn Mayo"
+date: "2025-03-16"
+output: html_document
+runtime: shiny
+---
+
+## **2. Univariate Discrete Random Variable**
+
+```{r, echo=FALSE}
+library(shiny)
+library(ggplot2)
+
+ui_uni <- fluidPage(
+    titlePanel("Univariate Random Variable"),
+    
+    sidebarLayout(
+        sidebarPanel(
+            textInput("xvals", "Enter X values (comma-separated):", ""),  
+            textInput("probs", "Enter probabilities (comma-separated):", ""),  
+            actionButton("compute", "Compute")  # Button to trigger computation
+        ),
+        
+        mainPanel(
+            verbatimTextOutput("stats"),  
+            plotOutput("pdf_plot"),  
+            plotOutput("cdf_plot")  
+        )
+    )
+)
+
+server_uni <- function(input, output) {
+    observeEvent(input$compute, {
+        if (input$xvals == "" || input$probs == "") {
+            output$stats <- renderText("Error: Please enter values for X and probabilities.")
+            return()
+        }
+
+        X <- as.numeric(unlist(strsplit(input$xvals, ",")))
+        P <- as.numeric(unlist(strsplit(input$probs, ",")))  
+        
+        # This is where we can ensure that user input of probabilities, when added together, will be equal to 1 and are in [0,1]
+        if (sum(P) != 1) {
+            output$stats <- renderText("Error: Probabilities' sum must be equal to 1.")
+            return()
+        }
+        if (any(P < 0 | P > 1)) {
+            output$stats <- renderText("Error: Probabilities must be between 0 and 1.")
+            return()
+        }
+        
+        # This is where we compute the mean and variance
+        mean_X <- sum(X * P)
+        variance_X <- sum((X - mean_X)^2 * P)
+        output$stats <- renderText(paste("Mean:", round(mean_X, 4), 
+                                         "\nVariance:", round(variance_X, 4)))
+        
+        # Plotting PDF:
+        output$pdf_plot <- renderPlot({
+            ggplot(data.frame(X, P), aes(x = X, y = P)) +
+                geom_bar(stat = "identity", fill = "purple") +
+                labs(title = "Probability Mass Function (PMF)", x = "X", y = "P(X)") +
+                theme_minimal()
+        })
+        
+        # Let us now calculate CDF
+        cdf_values <- cumsum(P)
+        
+        # Plotting CDF:
+        output$cdf_plot <- renderPlot({
+            ggplot(data.frame(X, CDF = cdf_values), aes(x = X, y = CDF)) +
+                geom_step(color = "purple", size = 1) +
+                labs(title = "Cumulative Distribution Function (CDF)", x = "X", y = "F(X)") +
+                theme_minimal()
+        })
+    })
+}
+
+shinyApp(ui_uni, server_uni)
+
+```
+
+## **Bivariate Discrete Random Variable**
+```{r, echo=FALSE}
+library(shiny)
+
+ui <- fluidPage(
+    titlePanel("Bivariate Discrete Random Variable"),
+    sidebarLayout(
+        sidebarPanel(
+            textInput("xvals", "Enter X values (comma-separated)", ""),
+            textInput("yvals", "Enter Y values (comma-separated)", ""),
+            textAreaInput("probs", "Enter joint probabilities (row-wise)", ""),
+            actionButton("compute", "Compute")
+        ),
+        mainPanel(
+            tableOutput("marginals"),
+            tableOutput("cond_x_given_y"),
+            tableOutput("cond_y_given_x"),
+            plotOutput("pdf_plot"),
+            plotOutput("cond_plot")
+        )
+    ),
+)
+
+server <- function(input, output) {
+    observeEvent(input$compute, {
+        # We must ensure that user input is not empty
+        if (input$xvals == "" || input$yvals == "" || input$probs == "") {
+            showNotification("Error: Please enter all required values.", type = "error")
+            return()
+        }
+        
+        X <- as.numeric(unlist(strsplit(input$xvals, ",")))
+        Y <- as.numeric(unlist(strsplit(input$yvals, ",")))
+        
+        probs_text <- gsub("\n", ",", input$probs)  
+        probs_vector <- as.numeric(unlist(strsplit(probs_text, ",")))
+        
+        # Makes sure that dimensions are correct
+        expected_length <- length(X) * length(Y)
+        
+        if (length(probs_vector) != expected_length) {
+            showNotification(
+                paste("Error: Probability matrix should have", expected_length, 
+                      "values, but got", length(probs_vector)),
+                type = "error"
+            )
+            return()
+        }
+        
+        # Here's our probability matrix
+        probs <- matrix(probs_vector, nrow = length(X), byrow = TRUE)
+        
+        # Marginal Distributions
+        P_X <- rowSums(probs)
+        P_Y <- colSums(probs)
+        
+        # Conditional Distributions
+        P_X_given_Y <- sweep(probs, 2, P_Y, FUN = "/")  # P(X | Y) = P(X, Y) / P(Y)
+        P_Y_given_X <- sweep(probs, 1, P_X, FUN = "/")  # P(Y | X) = P(X, Y) / P(X)
+        
+        P_X_given_Y[is.nan(P_X_given_Y)] <- 0
+        P_Y_given_X[is.nan(P_Y_given_X)] <- 0
+        
+        # Marginal Probability Table
+        output$marginals <- renderTable({
+            data.frame(X = X, P_X = P_X, Y = c(Y, rep(NA, length(X) - length(Y))), P_Y = c(P_Y, rep(NA, length(X) - length(Y))))
+        }, rownames = FALSE)
+        
+        # Conditional Probabilities Table
+        output$cond_x_given_y <- renderTable({
+            cond_table <- as.data.frame(round(P_X_given_Y, 3))
+            colnames(cond_table) <- paste("P(X | Y =", Y, ")", sep = "")
+            cbind(X = X, cond_table)
+        }, rownames = FALSE)
+        
+        output$cond_y_given_x <- renderTable({
+            cond_table <- as.data.frame(round(P_Y_given_X, 3))
+            colnames(cond_table) <- paste("P(Y | X =", X, ")", sep = "")
+            cbind(Y = Y, cond_table)
+        }, rownames = FALSE)
+        
+        # Marginal Distributions Bar Plot
+        output$pdf_plot <- renderPlot({
+            par(mfrow = c(1, 2))  # Side-by-side plots
+            
+            barplot(P_X, names.arg = X, col = "pink", main = "Marginal Distribution P(X)", xlab = "X", ylab = "P(X)")
+            barplot(P_Y, names.arg = Y, col = "lightblue", main = "Marginal Distribution P(Y)", xlab = "Y", ylab = "P(Y)")
+        })
+        
+        # Conditional Distribution Plots
+        output$cond_plot <- renderPlot({
+            par(mfrow = c(1, 2))
+            
+            matplot(X, t(P_X_given_Y), type = "b", pch = 19, col = rainbow(length(Y)), lty = 1,
+                    main = "Conditional Distribution P(X | Y)", xlab = "X", ylab = "P(X | Y)")
+            legend("topright", legend = paste("Y =", Y), col = rainbow(length(Y)), pch = 19)
+            
+            matplot(Y, P_Y_given_X, type = "b", pch = 19, col = rainbow(length(X)), lty = 1,
+                    main = "Conditional Distribution P(Y | X)", xlab = "Y", ylab = "P(Y | X)")
+            legend("topright", legend = paste("X =", X), col = rainbow(length(X)), pch = 19)
+        })
+    })
+}
+
+shinyApp(ui, server)
+
+
+```
