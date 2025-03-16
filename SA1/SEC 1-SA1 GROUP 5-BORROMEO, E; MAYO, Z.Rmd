@@ -1,0 +1,344 @@
+---
+title: "Summative Assessment 1"
+author: "Elisha Borromeo and Zyann Lynn Mayo"
+date: "2025-03-16"
+---
+
+## **1. Probability of Product Defectivity**
+
+---
+
+Here, we'll use the Law of Total Probability. The probability of selecting a defective product is calculated as:
+
+\[
+P(D) = (x_1 \times y_1) + (x_2 \times y_2) + (x_3 \times y_3)
+\]
+
+where:  
+- \( x_i \) are the **production proportions** (must be equal to 1 when added).  
+- \( y_i \) are the **defect rates** (must be equal to 0.12 when added).  
+- The values must satisfy the conditions:  
+  - \( 0.10 \leq x_i \leq 0.40 \)  
+  - \( 0.01 \leq y_i \leq 0.05 \)  
+
+---
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  titlePanel("Defective Probability Calculator"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("x1", "Enter x1:", value = NA, min = 0.10, max = 0.40),
+      numericInput("x2", "Enter x2:", value = NA, min = 0.10, max = 0.40),
+      numericInput("x3", "Enter x3:", value = NA, min = 0.10, max = 0.40),
+      
+      numericInput("y1", "Enter y1:", value = NA, min = 0.01, max = 0.05),
+      numericInput("y2", "Enter y2:", value = NA, min = 0.01, max = 0.05),
+      numericInput("y3", "Enter y3:", value = NA, min = 0.01, max = 0.05),
+      
+      actionButton("calculate", "Compute Probability")
+    ),
+    
+    mainPanel(
+      verbatimTextOutput("result")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$calculate, {
+    x <- c(input$x1, input$x2, input$x3)
+    y <- c(input$y1, input$y2, input$y3)
+    
+    # Here we can check if the user has enetered values
+    if (any(is.na(x)) || any(is.na(y))) {
+      output$result <- renderText("Please enter all values before calculating.")
+      return()
+    }
+    
+    # This is the code that ensures that the user inputs satisfy the given conditions
+    if (any(x < 0.10 | x > 0.40)) {
+      output$result <- renderText("Error: x values must be between 0.10 and 0.40.")
+      return()
+    }
+    if (any(y < 0.01 | y > 0.05)) {
+      output$result <- renderText("Error: y values must be between 0.01 and 0.05.")
+      return()
+    }
+    if (sum(x) != 1) {
+      output$result <- renderText("Error: x1 + x2 + x3 should be equal to 1.")
+      return()
+    }
+    if (sum(y) != 0.12) {
+      output$result <- renderText("Error: y1 + y2 + y3 should be equal to 0.12.")
+      return()
+    }
+    
+    # We can compute probability using Law of Total Probability
+    p_defective <- sum(x * y)
+    
+    output$result <- renderText(paste("Probability of selecting a defective product:", round(p_defective, 4)))
+    
+    # Let's reset so that user can input again eventually
+    updateNumericInput(session, "x1", value = NA)
+    updateNumericInput(session, "x2", value = NA)
+    updateNumericInput(session, "x3", value = NA)
+    updateNumericInput(session, "y1", value = NA)
+    updateNumericInput(session, "y2", value = NA)
+    updateNumericInput(session, "y3", value = NA)
+  })
+}
+
+shinyApp(ui, server)
+```
+
+## **2. Univariate Discrete Random Variable**
+
+```{r}
+library(shiny)
+library(ggplot2)
+
+ui_uni <- fluidPage(
+    titlePanel("Univariate Random Variable"),
+    
+    sidebarLayout(
+        sidebarPanel(
+            textInput("xvals", "Enter X values (comma-separated):", ""),  
+            textInput("probs", "Enter probabilities (comma-separated):", ""),  
+            actionButton("compute", "Compute")  # Button to trigger computation
+        ),
+        
+        mainPanel(
+            verbatimTextOutput("stats"),  
+            plotOutput("pdf_plot"),  
+            plotOutput("cdf_plot")  
+        )
+    )
+)
+
+server_uni <- function(input, output) {
+    observeEvent(input$compute, {
+        if (input$xvals == "" || input$probs == "") {
+            output$stats <- renderText("Error: Please enter values for X and probabilities.")
+            return()
+        }
+
+        X <- as.numeric(unlist(strsplit(input$xvals, ",")))
+        P <- as.numeric(unlist(strsplit(input$probs, ",")))  
+        
+        # This is where we can ensure that user input of probabilities, when added together, will be equal to 1 and are in [0,1]
+        if (sum(P) != 1) {
+            output$stats <- renderText("Error: Probabilities' sum must be equal to 1.")
+            return()
+        }
+        if (any(P < 0 | P > 1)) {
+            output$stats <- renderText("Error: Probabilities must be between 0 and 1.")
+            return()
+        }
+        
+        # This is where we compute the mean and variance
+        mean_X <- sum(X * P)
+        variance_X <- sum((X - mean_X)^2 * P)
+        output$stats <- renderText(paste("Mean:", round(mean_X, 4), 
+                                         "\nVariance:", round(variance_X, 4)))
+        
+        # Plotting PDF:
+        output$pdf_plot <- renderPlot({
+            ggplot(data.frame(X, P), aes(x = X, y = P)) +
+                geom_bar(stat = "identity", fill = "purple") +
+                labs(title = "Probability Mass Function (PMF)", x = "X", y = "P(X)") +
+                theme_minimal()
+        })
+        
+        # Let us now calculate CDF
+        cdf_values <- cumsum(P)
+        
+        # Plotting CDF:
+        output$cdf_plot <- renderPlot({
+            ggplot(data.frame(X, CDF = cdf_values), aes(x = X, y = CDF)) +
+                geom_step(color = "purple", size = 1) +
+                labs(title = "Cumulative Distribution Function (CDF)", x = "X", y = "F(X)") +
+                theme_minimal()
+        })
+    })
+}
+
+shinyApp(ui_uni, server_uni)
+
+```
+
+## **Bivariate Discrete Random Variable**
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+    titlePanel("Bivariate Discrete Random Variable"),
+    sidebarLayout(
+        sidebarPanel(
+            textInput("xvals", "Enter X values (comma-separated)", ""),
+            textInput("yvals", "Enter Y values (comma-separated)", ""),
+            textAreaInput("probs", "Enter joint probabilities (row-wise)", ""),
+            actionButton("compute", "Compute")
+        ),
+        mainPanel(
+            tableOutput("marginals"),
+            tableOutput("cond_x_given_y"),
+            tableOutput("cond_y_given_x"),
+            plotOutput("pdf_plot"),
+            plotOutput("cond_plot")
+        )
+    ),
+)
+
+server <- function(input, output) {
+    observeEvent(input$compute, {
+        # We must ensure that user input is not empty
+        if (input$xvals == "" || input$yvals == "" || input$probs == "") {
+            showNotification("Error: Please enter all required values.", type = "error")
+            return()
+        }
+        
+        X <- as.numeric(unlist(strsplit(input$xvals, ",")))
+        Y <- as.numeric(unlist(strsplit(input$yvals, ",")))
+        
+        probs_text <- gsub("\n", ",", input$probs)  
+        probs_vector <- as.numeric(unlist(strsplit(probs_text, ",")))
+        
+        # Makes sure that dimensions are correct
+        expected_length <- length(X) * length(Y)
+        
+        if (length(probs_vector) != expected_length) {
+            showNotification(
+                paste("Error: Probability matrix should have", expected_length, 
+                      "values, but got", length(probs_vector)),
+                type = "error"
+            )
+            return()
+        }
+        
+        # Here's our probability matrix
+        probs <- matrix(probs_vector, nrow = length(X), byrow = TRUE)
+        
+        # Marginal Distributions
+        P_X <- rowSums(probs)
+        P_Y <- colSums(probs)
+        
+        # Conditional Distributions
+        P_X_given_Y <- sweep(probs, 2, P_Y, FUN = "/")  # P(X | Y) = P(X, Y) / P(Y)
+        P_Y_given_X <- sweep(probs, 1, P_X, FUN = "/")  # P(Y | X) = P(X, Y) / P(X)
+        
+        P_X_given_Y[is.nan(P_X_given_Y)] <- 0
+        P_Y_given_X[is.nan(P_Y_given_X)] <- 0
+        
+        # Marginal Probability Table
+        output$marginals <- renderTable({
+            data.frame(X = X, P_X = P_X, Y = c(Y, rep(NA, length(X) - length(Y))), P_Y = c(P_Y, rep(NA, length(X) - length(Y))))
+        }, rownames = FALSE)
+        
+        # Conditional Probabilities Table
+        output$cond_x_given_y <- renderTable({
+            cond_table <- as.data.frame(round(P_X_given_Y, 3))
+            colnames(cond_table) <- paste("P(X | Y =", Y, ")", sep = "")
+            cbind(X = X, cond_table)
+        }, rownames = FALSE)
+        
+        output$cond_y_given_x <- renderTable({
+            cond_table <- as.data.frame(round(P_Y_given_X, 3))
+            colnames(cond_table) <- paste("P(Y | X =", X, ")", sep = "")
+            cbind(Y = Y, cond_table)
+        }, rownames = FALSE)
+        
+        # Marginal Distributions Bar Plot
+        output$pdf_plot <- renderPlot({
+            par(mfrow = c(1, 2))  # Side-by-side plots
+            
+            barplot(P_X, names.arg = X, col = "pink", main = "Marginal Distribution P(X)", xlab = "X", ylab = "P(X)")
+            barplot(P_Y, names.arg = Y, col = "lightblue", main = "Marginal Distribution P(Y)", xlab = "Y", ylab = "P(Y)")
+        })
+        
+        # Conditional Distribution Plots
+        output$cond_plot <- renderPlot({
+            par(mfrow = c(1, 2))
+            
+            matplot(X, t(P_X_given_Y), type = "b", pch = 19, col = rainbow(length(Y)), lty = 1,
+                    main = "Conditional Distribution P(X | Y)", xlab = "X", ylab = "P(X | Y)")
+            legend("topright", legend = paste("Y =", Y), col = rainbow(length(Y)), pch = 19)
+            
+            matplot(Y, P_Y_given_X, type = "b", pch = 19, col = rainbow(length(X)), lty = 1,
+                    main = "Conditional Distribution P(Y | X)", xlab = "Y", ylab = "P(Y | X)")
+            legend("topright", legend = paste("X =", X), col = rainbow(length(X)), pch = 19)
+        })
+    })
+}
+
+shinyApp(ui, server)
+```
+
+## **3. Markov Property**
+
+Based on the given, let us first generate 10,000 searches going through a list of sites until the key phrase is found.
+```{r}
+set.seed(920)
+searches <- 10000
+p <- 0.6 
+simulation <- rgeom(searches, p) + 1 #generated values should start from 1
+
+hist(simulation, probability = TRUE, breaks = 30, 
+     main = "Simulated Probability Density Function", 
+     xlab = "Number of Searches Until Success", 
+     col = "purple", border = "black")
+```
+
+Then, we compute the mean and variance:
+```{r}
+mean_sim <- mean(simulation)
+var_sim <- var(simulation)
+```
+
+Which gives us the values **`r round(mean_sim, 2)`** for the **mean**, and **`r round(var_sim, 2)`** for the **variance**.
+
+### **Obtain the simulated conditional distribution of searches where three searches have been carried out without success.**
+
+```{r}
+cond_sim <- simulation[simulation > 3]
+mean_cond <- mean(cond_sim)
+var_cond <- var(cond_sim)
+```
+
+After the condition, we get the values: **Mean =`r round(mean_cond, 2)`**, **Variance = `r round(var_cond, 2)`**.
+
+### **Markov memoryless property**
+According to the markov property of the geometric distribution, if X is a geometric random variable, then for each integer n:
+
+\[
+P(X = x + n|X > n) = P(X = x)
+
+\]
+**(a) P(X = 4|X >3) and P(X = 1)**
+```{r}
+p_x4_given_x3 <- sum(simulation == 4) / sum(simulation > 3)
+p_x1 <- mean(simulation == 1)
+```
+
+These values show that the Markov property hold as the values are **approximately** equal to each other.
+
+P(X = 4|X >3) = **`r round(p_x4_given_x3, 2)`**
+
+P(X = 1) = **`r round(p_x1, 2)`**
+
+
+
+**(b) P(X = 5|X >3) and P(X = 2)**
+```{r}
+p_x5_given_x3 <- sum(simulation == 5) / sum(simulation > 3)
+p_x2 <- mean(simulation == 2)
+```
+
+These values show that the Markov property hold as the values are **approximately** equal to each other.
+
+P(X = 4|X >3) = **`r round(p_x5_given_x3, 2)`** 
+
+P(X = 1) = **`r round(p_x2, 2)`**
