@@ -1,0 +1,65 @@
+---
+title: "SA2 No2"
+author: "Zyann Lynn Mayo"
+date: "2025-05-10"
+output: pdf_document
+---
+
+## Test using Shapiro-Wilk normality test the Ethereum returns for trading data every five minutes, from August 7, 2015 to April 15, 2025.
+
+NOTE: Due to source limitation, we were only able to retrieve the **DAILY** returns from **March 10, 2016** to **April 15, 2025**.
+
+
+### First, we retrieve the datas from the CSV file
+```{r, message=FALSE}
+suppressPackageStartupMessages(library(dplyr))
+library(dplyr)
+library(stats)
+
+eth_data <- read.csv("Ethereum_Historical_Data.csv", stringsAsFactors = FALSE)
+
+head(eth_data)
+
+eth_data$Price <- as.numeric(gsub(",", "", eth_data$Price))
+
+# Sort data by Date
+eth_data <- eth_data %>%
+  mutate(Date = as.Date(Date, format = "%b %d, %Y")) %>% 
+  arrange(Date)
+
+# Calculate log returns
+eth_data <- eth_data %>%
+  mutate(log_return = log(Price / lag(Price))) %>%
+  filter(!is.na(log_return))
+
+library(ggplot2)
+
+ggplot(eth_data, aes(x = log_return)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 bins = 50,
+                 fill = "skyblue",
+                 color = "black",
+                 alpha = 0.7) +
+  stat_function(fun = dnorm,
+                args = list(mean = mean(eth_data$log_return, na.rm = TRUE),
+                            sd = sd(eth_data$log_return, na.rm = TRUE)),
+                color = "red",
+                linewidth = 1) +
+  labs(title = "Histogram of Ethereum Daily Log Returns",
+       x = "Log Return",
+       y = "Density") +
+  theme_minimal()
+
+
+```
+
+### Using the built in function, we run the Ethereum data through the Shapiro-Wilk test
+```{r}
+shapiro_test <- shapiro.test(eth_data$log_return)
+```
+
+
+After testing the normality of Ethereum daily log returns using the Shapiro-Wilk test. The result yielded a W statistic of **`r round(shapiro_test$statistic, 3)`** and a p-value of **`r ifelse(shapiro_test$p.value < 2.2e-16, "< 2.2e-16", round(shapiro_test$p.value, 3))`**.
+
+Since the p-value is less than 0.05, the daily returns of Ethereum do **not** follow a normal distribution. This means the distribution of returns is significantly different from a normal distribution, possibly due to skewness, outliers, or fat tails. 
+
