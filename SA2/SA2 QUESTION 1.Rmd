@@ -1,0 +1,148 @@
+---
+title: "BTC/USD Returns Distribution Analysis"
+author: "Elisha Sophia Borromeo"
+date: "2025-05-16"
+output: html_document
+---
+
+##BTC/USD Returns Distribution Analysis
+
+### Find out which probability distribution function best fits Bitcoin’s returns for trading data every minute, from January 1, 2012 to April 15, 2025, for Bitcoin quoted in United States dollars or the BTC/USD pair.
+
+```{r setup, include=FALSE}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(fitdistrplus)
+library(e1071)
+library(VGAM)
+library(rmutil)
+
+data <- read_csv("C:/Users/Mommy/Downloads/btcusd_bitstamp_1min_2012-2025.csv.gz") %>%
+  mutate(return = open - close) %>%
+  filter(!is.na(return)) 
+
+```
+
+#### Let's plot the histogram.
+
+```{r, warning=FALSE}
+
+ggplot(data, aes(x = return)) +
+  geom_histogram(bins = 500, fill = "purple", alpha = 0.7) +
+  xlim(-1000, 1000) +
+  ylim(0, 200000) +
+  labs(title = "Histogram of BTC/USD Returns", x = "Returns", y = "Frequency")
+
+
+```
+
+
+```{r}
+
+returns <- data$return
+location <- median(returns)
+scale <- mean(abs(returns - location))
+
+laplace_params <- list(location = location, scale = scale)
+laplace_params
+
+```
+
+#### Now, let's overlay.
+
+```{r, warning=FALSE}
+x_vals <- seq(-150, 150, length.out = 250)
+
+if ("rmutil" %in% rownames(installed.packages())) {
+  y_vals <- dlaplace(x_vals, m = location, s = scale) * length(returns) * diff(x_vals)[1]
+} else {
+  dlaplace_manual <- function(x, location, scale) {
+    (1 / (2 * scale)) * exp(-abs(x - location) / scale)
+  }
+  y_vals <- dlaplace_manual(x_vals, location, scale) * length(returns) * diff(x_vals)[1]
+}
+
+laplace_df <- data.frame(x = x_vals, y = y_vals)
+
+ggplot(data, aes(x = return)) +
+  geom_histogram(bins = 500, fill = "violet", alpha = 0.7) +
+  geom_line(data = laplace_df, aes(x = x, y = y), color = "yellow", size = 1) +
+  xlim(-1000, 1000) +
+  ylim(0, 200000) +
+  labs(title = "Histogram of BTC/USD Returns with Laplace Fit", x = "Returns", y = "Frequency")
+
+
+```
+
+#### Let's compare with other distributions.
+
+```{r, warning=FALSE}
+library(fitdistrplus)
+
+returns <- data$return
+
+# Normal distribution
+fit_norm <- fitdist(returns, "norm")
+
+# Logistic distribution
+fit_logis <- fitdist(returns, "logis")
+
+# Cauchy distribution
+fit_cauchy <- fitdist(returns, "cauchy")
+
+# Laplace fit (manual MLE)
+neg_log_laplace <- function(params, x) {
+  loc <- params[1]
+  scale <- params[2]
+  if(scale <= 0) return(Inf)
+  n <- length(x)
+  ll <- -n * log(2 * scale) - sum(abs(x - loc) / scale)
+  return(-ll)
+}
+
+start_vals <- c(median(returns), mean(abs(returns - median(returns))))
+
+fit_laplace <- optim(start_vals, neg_log_laplace, x = returns, method = "L-BFGS-B", lower = c(-Inf, 1e-6))
+loc_lap <- fit_laplace$par[1]
+scale_lap <- fit_laplace$par[2]
+loglik_laplace <- -neg_log_laplace(c(loc_lap, scale_lap), returns)
+k_laplace <- 2
+aic_laplace <- 2 * k_laplace - 2 * loglik_laplace
+
+aic_results <- data.frame(
+  Distribution = c("Normal", "Logistic", "Cauchy", "Laplace"),
+  AIC = c(fit_norm$aic, fit_logis$aic, fit_cauchy$aic, aic_laplace)
+)
+
+print(aic_results)
+
+```
+
+#### This suggests that Laplace and Cauchy are better fits than Logistic and Normal with Cauchy being the best fit as it has the lowest AIC score.To visualize, let's overlay.
+
+```{r, warning=FALSE}
+cauchy_loc <- fit_cauchy$estimate["location"]
+cauchy_scale <- fit_cauchy$estimate["scale"]
+
+x_vals_cauchy <- seq(-150, 150, length.out = 250)
+
+y_vals_cauchy <- dcauchy(x_vals_cauchy, location = cauchy_loc, scale = cauchy_scale) * length(returns) * diff(x_vals_cauchy)[1]
+
+cauchy_df <- data.frame(x = x_vals_cauchy, y = y_vals_cauchy)
+
+ggplot(data, aes(x = return)) +
+  geom_histogram(bins = 500, fill = "violet", alpha = 0.7) +
+  geom_line(data = laplace_df, aes(x = x, y = y), color = "yellow", size = 1, linetype = "dashed") +
+  geom_line(data = cauchy_df, aes(x = x, y = y), color = "red", size = 1) +
+  xlim(-1000, 1000) +
+  ylim(0, 200000) +
+  labs(title = "Histogram of BTC/USD Returns with Laplace (yellow dashed) and Cauchy (red) Fits", 
+       x = "Returns", y = "Frequency")
+
+```
+
+
+
+
+
