@@ -2,15 +2,19 @@
 title: "SA2 No2"
 author: "Zyann Lynn Mayo"
 date: "2025-05-10"
-output: pdf_document
+output: 
+  pdf_document:
+    keep_tex: true
+    latex_engine: pdflatex
 ---
 
 ## Test using Shapiro-Wilk normality test the Ethereum returns for trading data every five minutes, from August 7, 2015 to April 15, 2025.
 
 NOTE: Due to source limitation, we were only able to retrieve the **DAILY** returns from **March 10, 2016** to **April 15, 2025**.
 
+Data is retrieved from **investing.com** with this link.  \href{https://ph.investing.com/crypto/ethereum/historical-data?utm_source=google&utm_medium=cpc&utm_campaign=19321382621&utm_content=642152731664&utm_term=dsa-1638656206948_&GL_Ad_ID=642152731664&GL_Campaign_ID=19321382621&ISP=1&npl=1&af_adset_id=144619252957&ppu=9801673&gad_source=1&gad_campaignid=19321382621&gbraid=0AAAAAoxWJ7R5_S-EzRFNuwa7P7l-i6xI7&gclid=Cj0KCQjw8vvABhCcARIsAOCfwwqIw7tyASqJTQxG8zlPObz43VC3DoGpcIvtrEIKCommZT3xNt5uFDwaAqFTEALw_wcB}{(CLICK HERE)}
 
-### First, we retrieve the datas from the CSV file
+### First, we save the data from investing.com in a csv file. Then we retrieve the file.
 ```{r, message=FALSE}
 suppressPackageStartupMessages(library(dplyr))
 library(dplyr)
