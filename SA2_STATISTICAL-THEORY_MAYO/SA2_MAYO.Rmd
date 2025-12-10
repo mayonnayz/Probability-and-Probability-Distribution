@@ -1,0 +1,166 @@
+---
+title: "SA2 - Alzheimer's Mice"
+author: "Mayo"
+date: "2025-12-10"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)  
+library(car)      
+library(multcomp) 
+library(emmeans)  
+library(kableExtra)
+
+
+data <- read.csv("Alzheimers Mice Data.csv")
+str(data)        
+names(data)       
+
+
+data$AD_Status  <- as.factor(data$AD_Status)
+data$Treatment  <- as.factor(data$Treatment)
+
+
+summary(data)
+```
+
+# Analysis for Training Day Errors
+
+### 2-Way ANOVA
+
+```{r anova_training}
+anova_training <- aov(Training ~ AD_Status * Treatment, data = data)
+summary(anova_training)
+```
+
+### Assumption Check : Normality
+
+```{r assumptions_training_norm}
+# Normality check (Shapiro-Wilk test on residuals)
+shapiro.test(residuals(anova_training))
+qqnorm(residuals(anova_training))
+qqline(residuals(anova_training))
+```
+The Shapiro-Wilk test for Training Day residuals returned a p-value of 0.2214.  
+**Interpretation:** Since the p-value is greater than 0.05, the residuals are approximately normal. Therefore, the normality assumption is **met**.
+
+### Assumption Check : Homogeneity of Variances
+```{r assumptions_training_homo}
+# Homogeneity of variances (Levene's test)
+leveneTest(Training ~ interaction(AD_Status, Treatment), data = data)
+
+```
+Levene's test for Training Day errors returned an F value of 0.4346 (p > 0.05).  
+**Interpretation:** Since the p-value is greater than 0.05, the variance across AD_Status × Treatment groups is equal. The homogeneity of variance assumption is **met**.
+
+
+### Post-Hoc Tests
+
+```{r posthoc_training}
+# Tukey HSD for main effects and interactions
+tukey_training <- TukeyHSD(anova_training)
+tukey_training
+
+emmeans(anova_training, pairwise ~ AD_Status * Treatment, adjust = "tukey")
+
+
+```
+
+# Summary: Training Day
+
+## Assumption Checks:
+
+**Normality:** Shapiro-Wilk test for residuals (p = 0.2214) → residuals are approximately normal. 
+
+**Homogeneity of Variances:** Levene’s test (F = 0.4346, p > 0.05) → equal variance across AD × Treatment groups. 
+
+## ANOVA Results:
+
+The two-way ANOVA tested the effects of AD status, Treatment, and their interaction on Training Day errors.
+
+Significant effects (if any) can be interpreted based on F-values and p-values from the ANOVA table.
+
+## Post-Hoc Analysis:
+
+Tukey-adjusted pairwise comparisons revealed which specific AD × Treatment groups differed significantly in Training Day errors.
+
+These comparisons clarify the direction of differences (e.g., which treatment reduced or increased errors in transgenic vs. wild-type mice).
+
+## Interpretation:
+
+AD status and drug treatments influence performance during training.
+
+The results highlight potential treatments that improve or impair training performance depending on genotype.
+
+
+# Analysis for Memory Day Errors
+
+### 2-Way ANOVA
+
+```{r anova_memory}
+anova_memory <- aov(Memory ~ AD_Status * Treatment, data = data)
+summary(anova_memory)
+```
+
+### Assumption Checks : Normality
+
+```{r assumptions_memory_norm}
+# Normality check (Shapiro-Wilk test on residuals)
+shapiro.test(residuals(anova_memory))
+qqnorm(residuals(anova_training))
+qqline(residuals(anova_training))
+```
+The Shapiro-Wilk test for Memory Day residuals returned a p-value of 0.2817.  
+**Interpretation:** Since the p-value is greater than 0.05, the residuals are approximately normal. The normality assumption is **met**.
+
+
+### Assumption Checks : Homogeneity of Variances
+```{r assumptions_memory_homo}
+# Homogeneity of variances (Levene's test)
+leveneTest(Memory ~ interaction(AD_Status, Treatment), data = data)
+
+```
+Levene's test for Memory Day errors returned an F value of 0.8275 (p > 0.05).  
+**Interpretation:** Since the p-value is greater than 0.05, the variance across AD_Status × Treatment groups is equal. The homogeneity of variance assumption is **met**.
+
+### Post-Hoc Tests
+
+```{r posthoc_memory}
+# Tukey HSD for main effects and interactions
+tukey_memory <- TukeyHSD(anova_memory)
+tukey_memory
+
+
+# Pairwise comparisons for interaction
+emmeans(anova_memory, pairwise ~ AD_Status * Treatment, adjust = "tukey")
+
+
+```
+
+# Summary: Memory Day Errors
+
+## Assumption Checks
+
+**Normality:** Shapiro-Wilk test for residuals (p = 0.2817) → residuals are approximately normal.
+
+**Homogeneity of Variances:** Levene’s test (F = 0.8275, p > 0.05) → equal variance across AD × Treatment groups.
+
+## ANOVA Results
+
+The two-way ANOVA examined the effects of AD status, Treatment, and their interaction on Memory Day errors.
+
+Significant main or interaction effects indicate whether memory performance is affected by AD status, treatment, or both.
+
+## Post-Hoc Analysis
+
+Tukey-adjusted pairwise comparisons identify specific group differences in memory errors.
+
+This reveals which treatments improve or impair memory performance in transgenic vs. wild-type mice.
+
+## Interpretation
+
+Both genotype and treatment influence memory performance in mice.
+
+Some drug treatments may alleviate memory deficits in transgenic mice, highlighting their potential therapeutic relevance.
